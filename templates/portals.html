@@ -24,6 +24,7 @@
                     data-url="{{ portals[portal].url }}" data-proxy="{{ portals[portal].proxy }}"
                     data-macs="{{ portals[portal].macs|join(',') }}"
                     data-streamsPerMac="{{ portals[portal]['streams per mac'] }}" data-bs-toggle="modal"
+                    data-time_zone="{{ portals[portal]['time_zone'] }}"
                     data-bs-target="#modalEdit">
                     <i class="me-2 fa fa-server"{{ "hidden" if portals[portal].enabled =='false' }}></i>
                     <i class="me-2 fa fa-ban"{{ "hidden" if portals[portal].enabled =='true' }}></i>
@@ -94,6 +95,12 @@
                     <input type="number" name="streams per mac" class="form-control flex-fill" title="Streams Per Mac"
                         min="0" value="1" required>
                     <span class="text-muted">How many streams does each MAC allow. 0 = unlimited.</span>
+                    
+                    <br><br>
+
+                    <h6>Timezone:</h6>
+                    <input type="text" name="time_zone" class="form-control flex-fill" title="Timezone" value="Europe/London">
+                    <span class="text-muted">Optional Timezone.</span>
 
                     <br><br>
 
@@ -160,6 +167,12 @@
 
                     <br><br>
 
+                    <h6>Timezone:</h6>
+                    <input type="text" name="time_zone" id="editTimeZone" class="form-control flex-fill" title="Timezone" > 
+                    <span class="text-muted">Optional Timezone.</span>
+
+                    <br><br>
+
                     <div class="modal-footer">
                         <button class="btn btn-danger me-auto" title="Delete" form="delete"
                             id="deleteName">Delete</button>
@@ -206,6 +219,7 @@
         var proxy = button.getAttribute('data-proxy');
         var macs = button.getAttribute('data-macs');
         var streamsPerMac = button.getAttribute('data-streamsPerMac');
+        var time_zone = button.getAttribute('data-time_zone');
         document.getElementById('editId').value = id;
         if (enabled == "true") {
             document.getElementById('editEnabled').checked = true;
@@ -217,6 +231,7 @@
         document.getElementById('editProxy').value = proxy;
         document.getElementById('editMacs').value = macs;
         document.getElementById('editStreamsPerMac').value = streamsPerMac;
+        document.getElementById('editTimeZone').value = time_zone;
         document.getElementById('deleteId').value = id;
         document.getElementById('deleteName').value = name;
         document.getElementById('retest').checked = false;

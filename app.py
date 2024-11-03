@@ -84,6 +84,7 @@ defaultPortal = {
     "custom genres": {},
     "custom epg ids": {},
     "fallback channels": {},
+    "time_zone": "Europe/London",
 }
 
 
@@ -205,6 +206,7 @@ def portalsAdd():
     macs = list(set(request.form["macs"].split(",")))
     streamsPerMac = request.form["streams per mac"]
     proxy = request.form["proxy"]
+    time_zone = request.form["time_zone"]
 
     if not url.endswith(".php"):
         url = stb.getUrl(url, proxy)
@@ -216,10 +218,10 @@ def portalsAdd():
     macsd = {}
 
     for mac in macs:
-        token = stb.getToken(url, mac, proxy)
+        token = stb.getToken(url, mac, proxy, time_zone)
         if token:
-            stb.getProfile(url, mac, token, proxy)
-            expiry = stb.getExpires(url, mac, token, proxy)
+            stb.getProfile(url, mac, token, proxy, time_zone)
+            expiry = stb.getExpires(url, mac, token, proxy, time_zone)
             if expiry:
                 macsd[mac] = expiry
                 logger.info(
@@ -242,6 +244,7 @@ def portalsAdd():
             "macs": macsd,
             "streams per mac": streamsPerMac,
             "proxy": proxy,
+            "time_zone": time_zone,
         }
 
         for setting, default in defaultPortal.items():
@@ -273,6 +276,7 @@ def portalUpdate():
     newmacs = list(set(request.form["macs"].split(",")))
     streamsPerMac = request.form["streams per mac"]
     proxy = request.form["proxy"]
+    time_zone = request.form["time_zone"]
     retest = request.form.get("retest", None)
 
     if not url.endswith(".php"):
@@ -289,10 +293,10 @@ def portalUpdate():
 
     for mac in newmacs:
         if retest or mac not in oldmacs.keys():
-            token = stb.getToken(url, mac, proxy)
+            token = stb.getToken(url, mac, proxy, time_zone)
             if token:
-                stb.getProfile(url, mac, token, proxy)
-                expiry = stb.getExpires(url, mac, token, proxy)
+                stb.getProfile(url, mac, token, proxy, time_zone)
+                expiry = stb.getExpires(url, mac, token, proxy, time_zone)
                 if expiry:
                     macsout[mac] = expiry
                     logger.info(
@@ -320,6 +324,7 @@ def portalUpdate():
         portals[id]["macs"] = macsout
         portals[id]["streams per mac"] = streamsPerMac
         portals[id]["proxy"] = proxy
+        portals[id]["time_zone"] = time_zone
         savePortals(portals)
         logger.info("Portal({}) updated!".format(name))
         flash("Portal({}) updated!".format(name), "success")
@@ -364,6 +369,7 @@ def editor_data():
             url = portals[portal]["url"]
             macs = list(portals[portal]["macs"].keys())
             proxy = portals[portal]["proxy"]
+            time_zone = portals[portal]["time_zone"]
             enabledChannels = portals[portal].get("enabled channels", [])
             customChannelNames = portals[portal].get("custom channel names", {})
             customGenres = portals[portal].get("custom genres", {})
@@ -373,10 +379,10 @@ def editor_data():
 
             for mac in macs:
                 try:
-                    token = stb.getToken(url, mac, proxy)
-                    stb.getProfile(url, mac, token, proxy)
-                    allChannels = stb.getAllChannels(url, mac, token, proxy)
-                    genres = stb.getGenreNames(url, mac, token, proxy)
+                    token = stb.getToken(url, mac, proxy, time_zone)
+                    stb.getProfile(url, mac, token, proxy, time_zone)
+                    allChannels = stb.getAllChannels(url, mac, token, proxy, time_zone)
+                    genres = stb.getGenreNames(url, mac, token, proxy, time_zone)
                     break
                 except:
                     allChannels = None
@@ -579,6 +585,7 @@ def playlist():
                 url = portals[portal]["url"]
                 macs = list(portals[portal]["macs"].keys())
                 proxy = portals[portal]["proxy"]
+                time_zone = portals[portal]["time_zone"]
                 customChannelNames = portals[portal].get("custom channel names", {})
                 customGenres = portals[portal].get("custom genres", {})
                 customChannelNumbers = portals[portal].get("custom channel numbers", {})
@@ -586,10 +593,10 @@ def playlist():
 
                 for mac in macs:
                     try:
-                        token = stb.getToken(url, mac, proxy)
-                        stb.getProfile(url, mac, token, proxy)
-                        allChannels = stb.getAllChannels(url, mac, token, proxy)
-                        genres = stb.getGenreNames(url, mac, token, proxy)
+                        token = stb.getToken(url, mac, proxy, time_zone)
+                        stb.getProfile(url, mac, token, proxy, time_zone)
+                        allChannels = stb.getAllChannels(url, mac, token, proxy, time_zone)
+                        genres = stb.getGenreNames(url, mac, token, proxy, time_zone)
                         break
                     except:
                         allChannels = None
@@ -670,15 +677,16 @@ def xmltv():
                 url = portals[portal]["url"]
                 macs = list(portals[portal]["macs"].keys())
                 proxy = portals[portal]["proxy"]
+                time_zone = portals[portal]["time_zone"]
                 customChannelNames = portals[portal].get("custom channel names", {})
                 customEpgIds = portals[portal].get("custom epg ids", {})
 
                 for mac in macs:
                     try:
-                        token = stb.getToken(url, mac, proxy)
-                        stb.getProfile(url, mac, token, proxy)
-                        allChannels = stb.getAllChannels(url, mac, token, proxy)
-                        epg = stb.getEpg(url, mac, token, 24, proxy)
+                        token = stb.getToken(url, mac, proxy, time_zone)
+                        stb.getProfile(url, mac, token, proxy, time_zone)
+                        allChannels = stb.getAllChannels(url, mac, token, proxy, time_zone)
+                        epg = stb.getEpg(url, mac, token, 24, proxy, time_zone)
                         break
                     except:
                         allChannels = None
@@ -834,6 +842,7 @@ def channel(portalId, channelId):
     url = portal.get("url")
     macs = list(portal["macs"].keys())
     streamsPerMac = int(portal.get("streams per mac"))
+    time_zone = portal.get("time_zone")
     proxy = portal.get("proxy")
     web = request.args.get("web")
     ip = request.remote_addr
@@ -853,10 +862,10 @@ def channel(portalId, channelId):
                 "Trying Portal({}):MAC({}):Channel({})".format(portalId, mac, channelId)
             )
             freeMac = True
-            token = stb.getToken(url, mac, proxy)
+            token = stb.getToken(url, mac, proxy, time_zone)
             if token:
-                stb.getProfile(url, mac, token, proxy)
-                channels = stb.getAllChannels(url, mac, token, proxy)
+                stb.getProfile(url, mac, token, proxy, time_zone)
+                channels = stb.getAllChannels(url, mac, token, proxy, time_zone)
 
         if channels:
             for c in channels:
@@ -869,7 +878,7 @@ def channel(portalId, channelId):
 
         if cmd:
             if "http://localhost/" in cmd:
-                link = stb.getLink(url, mac, token, cmd, proxy)
+                link = stb.getLink(url, mac, token, cmd, proxy, time_zone)
             else:
                 link = cmd.split(" ")[1]
 
@@ -941,6 +950,7 @@ def channel(portalId, channelId):
                     url = portals[portal].get("url")
                     macs = list(portals[portal]["macs"].keys())
                     proxy = portals[portal].get("proxy")
+                    time_zone = portal[portal].get("time_zone")
                     for mac in macs:
                         channels = None
                         cmd = None
@@ -949,10 +959,10 @@ def channel(portalId, channelId):
                             for k, v in fallbackChannels.items():
                                 if v == channelName:
                                     try:
-                                        token = stb.getToken(url, mac, proxy)
-                                        stb.getProfile(url, mac, token, proxy)
+                                        token = stb.getToken(url, mac, proxy, time_zone)
+                                        stb.getProfile(url, mac, token, proxy, time_zone)
                                         channels = stb.getAllChannels(
-                                            url, mac, token, proxy
+                                            url, mac, token, proxy, time_zone
                                         )
                                     except:
                                         logger.info(
@@ -969,7 +979,7 @@ def channel(portalId, channelId):
                                         if cmd:
                                             if "http://localhost/" in cmd:
                                                 link = stb.getLink(
-                                                    url, mac, token, cmd, proxy
+                                                    url, mac, token, cmd, proxy, time_zone
                                                 )
                                             else:
                                                 link = cmd.split(" ")[1]
@@ -1135,14 +1145,15 @@ def lineup():
                 url = portals[portal]["url"]
                 macs = list(portals[portal]["macs"].keys())
                 proxy = portals[portal]["proxy"]
+                time_zone = portals[portal]["time_zone"]
                 customChannelNames = portals[portal].get("custom channel names", {})
                 customChannelNumbers = portals[portal].get("custom channel numbers", {})
 
                 for mac in macs:
                     try:
-                        token = stb.getToken(url, mac, proxy)
-                        stb.getProfile(url, mac, token, proxy)
-                        allChannels = stb.getAllChannels(url, mac, token, proxy)
+                        token = stb.getToken(url, mac, proxy, time_zone)
+                        stb.getProfile(url, mac, token, proxy, time_zone)
+                        allChannels = stb.getAllChannels(url, mac, token, proxy, time_zone)
                         break
                     except:
                         allChannels = None
