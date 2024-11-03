@@ -11,7 +11,7 @@ s.mount("http://", HTTPAdapter(max_retries=retries))
 def getUrl(url, proxy=None):
     def parseResponse(url, data):
         java = data.text.replace(" ", "").replace("'", "").replace("+", "")
-        pattern = re.search(r"varpattern.*\/(\(http.*)\/;", java).group(1)
+        pattern = re.search(r"\s*var\s*pattern.*\/(\(http.*)\/;", data.text).group(1)
         result = re.search(pattern, url)
         protocolIndex = re.search(r"this\.portal_protocol.*(\d).*;", java).group(1)
         ipIndex = re.search(r"this\.portal_ip.*(\d).*;", java).group(1)
@@ -117,8 +117,14 @@ def getExpires(url, mac, token, proxy=None):
             proxies=proxies,
         )
         expires = response.json()["js"]["phone"]
+        try:
+            expires_alt = response.json()["js"]["end_date"]
+        except:
+            pass
         if expires:
             return expires
+        elif expires_alt:
+            return expires_alt
     except:
         pass
 
